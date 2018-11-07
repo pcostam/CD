@@ -10,7 +10,7 @@ from sklearn import cluster, mixture
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
-from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score
+from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score, mean_squared_error
 import numpy as np
 
 
@@ -21,14 +21,15 @@ print( '-----------------------------------' )
 data = pd.read_csv( r'.\data\Colposcopy\green.csv', na_values="na")
 
 
-X = data.drop(['consensus', 'experts::0', 'experts::1','experts::2' ,'experts::3','experts::4','experts::5'], axis=1 )
+X = data.drop(['consensus', 'experts::0', 'experts::1','experts::2' ,'experts::3','experts::4','experts::5'], axis=1 ).values
 print("X", len(X))
-y = data.loc[:,['consensus', 'experts::0','experts::1','experts::2' ,'experts::3','experts::4','experts::5']].values
-print("y", len(y))
+y = data['consensus'].values
+print("y", len(y), y)
 
 #center and scale data
 X = StandardScaler().fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+print("y_test", y_test)
 
 
 #plot heatmaps to explore
@@ -155,20 +156,22 @@ for n_clusters in range_n_clusters:
 i. adjusted Rand index
 """
 clusterer = cluster.KMeans(n_clusters=k_clusters, random_state=10)
-y_pred = clusterer.fit_predict(X_test)
+#y_pred = clusterer.fit_predict(X_test)
+
+print("y_train", y_train)
+model = clusterer.fit(X_train, y_train)
+print("X_test", X_test)
+y_pred = model.predict( X_test )
+print("y_test", y_test)
 print("y_pred", y_pred)
-#print("rand_index_score", adjusted_rand_score(y_test, y_pred))
+print('y_test', y_test)
+print("rand_index_score", adjusted_rand_score(y_test, y_pred))
 
 """
 ii. sum of squared errors
 """
 
-from scipy.cluster.vq import vq
-
-# X.shape[0] -> observations
-# X.shape[1] -> features
-partition, euc_distance_to_centroids = vq(X, codebook)
-
+mean_squared_error(y_test, y_pred)
 
 
 """
