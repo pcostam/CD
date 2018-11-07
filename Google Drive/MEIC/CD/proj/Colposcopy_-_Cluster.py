@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn import cluster, mixture
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score
 import numpy as np
 
