@@ -15,8 +15,8 @@ print( '-----------------------------------' )
 
 
 data = {
-    'test': pd.read_csv( r'.\data\Truck\aps_failure_test_set.csv' ),
-    'train': pd.read_csv( r'.\data\Truck\aps_failure_training_set.csv' ),
+    'test': pd.read_csv( r'.\data\Truck\aps_failure_test_set.csv', na_values='na' ),
+    'train': pd.read_csv( r'.\data\Truck\aps_failure_training_set.csv', na_values='na' ),
 }
 print( '>>> Loaded truck\'s data!' )
 
@@ -40,12 +40,14 @@ def run():
 # Normalize data:
 print( '--------------------------------------------' )
 print( 'Normalize data with a constant value of -1.' )
+data['train'] = data['train'].fillna(-1)
+data['test'] = data['test'].fillna(-1)
 X_train = data['train'].drop( 'class', axis=1 ).values
 X_test  = data['test'].drop( 'class', axis=1 ).values
 y_train = data['train'][ 'class' ].values
 y_test  = data['test'][ 'class' ].values
-X_train[ X_train == 'na' ] = '-1'
-X_test[ X_test == 'na' ] = '-1'
+#X_train[ X_train == 'na' ] = '-1'
+#X_test[ X_test == 'na' ] = '-1'
 run()
 
 print( '--------------------------------------------' )
