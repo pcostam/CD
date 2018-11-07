@@ -20,8 +20,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 import pandas as pd
 # loading libraries
 import numpy as np
-from sklearn.cross_validation import train_test_split
-from sklearn.model_selection import cross_val_score
+#from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 import preprocessing as pp
 from sklearn.metrics import roc_curve, auc
