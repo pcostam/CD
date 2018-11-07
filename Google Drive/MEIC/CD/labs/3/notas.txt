@@ -1,0 +1,6 @@
+fazer normalização knn
+knn é muito pior que naives bayes.
+usa só income com milhares, em vez de unidades
+
+
+nao passar coisas binarias para o preprocess... porque nao é necesario. no entanto, converter para binario

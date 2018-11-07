@@ -1,0 +1,4 @@
+diferentes tecnicas de discretizacao
+outlier
+na_values do read_cvs = na 
+knn  usa as distancias, é afectado pelas diferentes escalas dos atributos
