@@ -2,15 +2,16 @@
 """
 Created on Tue Nov  6 19:56:18 2018
 
-@author: anama
+@author: Margarida Costa
 """
 
 import pandas as pd
 from sklearn import cluster, mixture
 from sklearn.preprocessing import StandardScaler
+from scipy.stats import chisquare
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score
+from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score, mean_squared_error
 import numpy as np
 
 
@@ -28,8 +29,6 @@ print("y", len(y), y)
 
 #center and scale data
 X = StandardScaler().fit_transform(X)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
-print("y_test", y_test)
 
 
 #plot heatmaps to explore
@@ -70,6 +69,35 @@ average = cluster.AgglomerativeClustering(
 n_clusters=k_clusters, linkage='average')
 single = cluster.AgglomerativeClustering(
 n_clusters=k_clusters, linkage='single')
+
+
+agglomerative_algorithms = (
+                            ('ward', ward),
+                            ('complete', complete),
+                            ('average', average),
+                            ('single', single)
+                           )
+
+#chisquare(X_train, y_train)
+#chisquare(X_test, y_test)
+    
+for name, algorithm in agglomerative_algorithms:
+   print(name)
+   #clf.cluster_centers_
+   y_labels = algorithm.fit_predict(X)
+    #Labels of each point
+
+
+    # !! Get the indices of the points for each corresponding cluster
+   mydict = {i: np.where(y_labels == i)[0] for i in range(algorithm.n_clusters)}
+
+   print(mydict)
+    
+   squared_errors = y - y_labels ** 2
+   #np.sum(squared_errors)
+   #chi square test
+
+    
 
 
 """
@@ -156,27 +184,19 @@ for n_clusters in range_n_clusters:
 i. adjusted Rand index
 """
 clusterer = cluster.KMeans(n_clusters=k_clusters, random_state=10)
-#y_pred = clusterer.fit_predict(X_test)
+y_labels = algorithm.fit_predict(X)
 
-print("y_train", y_train)
-model = clusterer.fit(X_train, y_train)
-print("X_test", X_test)
-y_pred = model.predict( X_test )
-print("y_test", y_test)
-print("y_pred", y_pred)
-print('y_test', y_test)
-print("rand_index_score", adjusted_rand_score(y_test, y_pred))
+print("rand_index_score", adjusted_rand_score(y, y_labels))
 
 """
 ii. sum of squared errors
 """
-
-mean_squared_error(y_test, y_pred)
+mean_squared_error(y, y_labels)
 
 
 """
 iii. mutual Information based scores (in Python)
+"""
+"""
 iv. homogeneity, completeness and V-measure (in Python)
-
-
 """
