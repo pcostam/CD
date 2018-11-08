@@ -40,8 +40,8 @@ def run():
 # Normalize data:
 print( '--------------------------------------------' )
 print( 'Normalize data with a constant value of -1.' )
-data['train'] = data['train'].fillna(-1)
-data['test'] = data['test'].fillna(-1)
+data['train'] = data['train'].fillna( -1 )
+data['test'] = data['test'].fillna( -1 )
 X_train = data['train'].drop( 'class', axis=1 ).values
 X_test  = data['test'].drop( 'class', axis=1 ).values
 y_train = data['train'][ 'class' ].values
@@ -52,7 +52,7 @@ run()
 
 print( '--------------------------------------------' )
 print( 'Normalize data with mean value.' )
-data['train'].fillna( data['train'].mean() )
+data['train'] = data['train'].fillna( data['train'].mean() )
 X_train = data['train'].drop( 'class', axis=1 ).values
 X_test  = data['test'].drop( 'class', axis=1 ).values
 y_train = data['train'][ 'class' ].values

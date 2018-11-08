@@ -6,7 +6,6 @@
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import pandas as pd
 import numpy as np
-from sklearn.cross_validation import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeClassifier
 
@@ -29,8 +28,10 @@ def run():
     y_pred = model.predict( X_test )
     
     train_accuracy = dtc.score( X_train, y_train )
+    matrix, shape = confusion_matrix( y_test, y_pred )
     print( 'Accuracy:', train_accuracy )
     print( 'y_pred:', y_pred )
+    print( 'confusion matrix:', matrix, shape )
     
     print( '>>> Apply Decision Tree (gini)' )
     dtc = DecisionTreeClassifier( criterion = 'gini', random_state = 0 )
@@ -39,8 +40,10 @@ def run():
     y_pred = model.predict( X_test )
     
     train_accuracy = dtc.score( X_train, y_train )
+    matrix, shape = confusion_matrix( y_test, y_pred )
     print( 'Accuracy:', train_accuracy )
     print( 'y_pred:', y_pred )
+    print( 'confusion matrix:', matrix, shape )
     print()
 
 # Normalize data:
@@ -56,7 +59,7 @@ run()
 
 print( '--------------------------------------------' )
 print( 'Normalize data with mean value.' )
-data['train'].fillna( data['train'].mean() )
+data['train'] = data['train'].fillna( data['train'].mean() )
 X_train = data['train'].drop( 'class', axis=1 ).values
 X_test  = data['test'].drop( 'class', axis=1 ).values
 y_train = data['train'][ 'class' ].values
