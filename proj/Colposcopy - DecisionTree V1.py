@@ -24,6 +24,7 @@ def run():
     train_accuracy = dtc.score( X_train, y_train )
     matrix, shape = confusion_matrix( y_test, y_pred )
     print( 'Accuracy:', train_accuracy )
+    print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
     print( 'y_pred:', y_pred )
     print( 'confusion matrix:', matrix, shape )
     
@@ -36,6 +37,7 @@ def run():
     train_accuracy = dtc.score( X_train, y_train )
     matrix, shape = confusion_matrix( y_test, y_pred )
     print( 'Accuracy:', train_accuracy )
+    print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
     print( 'y_pred:', y_pred )
     print( 'confusion matrix:', matrix, shape )
     print()

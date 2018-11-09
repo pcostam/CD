@@ -32,6 +32,7 @@ def run():
     #cv = cross_val_score( naive_bayes, x_train, iris_y_train, cv=10 )
     
     print( 'Accuracy:', train_accuracy )
+    print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
     print( 'y_pred:', y_pred )
     #print( 'NB cross validation:', cv, sep='\n' )
     print()
