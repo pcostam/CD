@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import chisquare
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score, mean_squared_error
+from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score, mean_squared_error, completeness_score, mutual_info_score, homogeneity_score, v_measure_score
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
 
@@ -47,7 +47,7 @@ algorithms = {}
 #http://www.sthda.com/english/wiki/print.php?id=239
 # using sinhouete https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
 #http://ros-developer.com/2017/12/04/silhouette-coefficient-finding-optimal-number-clusters/
-range_n_clusters = range(2,15)
+range_n_clusters = range(2,5)
 silhouette_score_values = []
 for n_clusters in range_n_clusters:
     # Initialize the clusterer with n_clusters value
@@ -69,8 +69,13 @@ k-Means with parameterized distance metrics:
 Kmeans sklearn uses euclidean measures
 """
 kmeans = cluster.KMeans(n_clusters=k_clusters, n_init=200)
-
-
+kmeans.fit(X)
+#save centroids for further mapping in agglomerative cluster
+Kx = kmeans.cluster_centers_
+print(len(kmeans.labels_))
+print("kx", len(Kx))
+Kx_mapping = {case:cluster for case,
+ cluster in enumerate(kmeans.labels_)}
 
 """
 The main idea behind Agglomerative clustering is that each node first starts in its own cluster,
@@ -102,21 +107,28 @@ agglomerative_algorithms = (
     
 for name, algorithm in agglomerative_algorithms:
    print(name)
-   #clf.cluster_centers_
+   #cluster of each point
    y_labels = algorithm.fit_predict(X)
-    #Labels of each point
-
-
-    # !! Get the indices of the points for each corresponding cluster
-   mydict = {i: np.where(y_labels == i)[0] for i in range(algorithm.n_clusters)}
-
-   print(mydict)
+   # Get the indices of the points for each corresponding cluster
+   mydict = {i: np.where(y_labels == i)[0] for i in range(algorithm.n_clusters)} 
+   #what cluster centroids from kmeans were assigned to the agglomerative cluster
+   H_mapping = {case:cluster for case,cluster in enumerate(algorithm.labels_)}
+   print("H mapping", H_mapping)
+   final_mapping = {case:H_mapping[Kx_mapping[case]] for case in Kx_mapping}
+   print("final mapping", final_mapping)
+   centroid_mapping = {}
+   for c in final_mapping.values():
+       try: 
+           centroid_mapping[c] 
+       except KeyError:
+           centroid_mapping[c] = Kx[0]
+   print("centroid mapping", centroid_mapping)
+   s = 0
+   for c in centroid_mapping.values():
+       for x in range(len(X)):
+           s += (np.linalg.norm(c - x)) ** 2
     
-   squared_errors = y - y_labels ** 2
-   #np.sum(squared_errors)
-   #chi square test
-
-    
+   print("sum of squared errors", s)
 
 
 """
@@ -181,9 +193,7 @@ uncertainty by calculating cluster p-values via multiscale
 bootstrap resampling
 
 """
-    
-#evalue
-    
+
     
     
 """
@@ -193,39 +203,34 @@ b. In the presence of class information using:
 +1 far away, 0 very close
 """
 
-
-algorithms = (
+algorithms = agglomerative_algorithms
+algorithms =  algorithms + (
                 ('spectral', spectral),
                 ('affinity', affinity),
                 ('dbscan', dbscan),
                 ('birch', birch),
                 ('gmm', gmm),
                 ('ms', ms),
-                ('birch', birch)
+                ('birch', birch),
                 ('two_means', two_means)
                         )
 
 
 
      
-
-"""
-i. adjusted Rand index
-"""
-clusterer = cluster.KMeans(n_clusters=k_clusters, random_state=10)
-y_labels = algorithm.fit_predict(X)
-
-print("rand_index_score", adjusted_rand_score(y, y_labels))
-
-"""
-ii. sum of squared errors
-"""
-mean_squared_error(y, y_labels)
-
-
-"""
-iii. mutual Information based scores (in Python)
-"""
-"""
-iv. homogeneity, completeness and V-measure (in Python)
-"""
+for name, algorithm in algorithms:    
+    print(">>>>name", name)
+    #adjusted Rand index
+    y_labels = algorithm.fit_predict(X)
+    print("rand index score", adjusted_rand_score(y, y_labels))
+    #completeness
+    print("complenetess score", completeness_score(y, y_labels))
+    #mutual Information based scores 
+    print("mutual information score", mutual_info_score(y, y_labels ))
+    #homogeneity 
+    print("homogeneity", homogeneity_score(y, y_labels))
+    #V-measure
+    print("v-measure", v_measure_score(y, y_labels))
+    #sum of squared errors TODO
+  
+ 
