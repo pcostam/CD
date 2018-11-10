@@ -13,8 +13,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 import pandas as pd
 # loading libraries
 import numpy as np
-from sklearn.cross_validation import train_test_split
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 import preprocessing as pp
 from sklearn.metrics import roc_curve, auc
@@ -41,8 +40,9 @@ print(IQR)
 
 #remove outliers
 data_out = data_o1[~((data_o1 < (Q1 - 1.5 * IQR)) |(data_o1 > (Q3 + 1.5 * IQR))).any(axis=1)]
-data_out.shape
-
+#data['train'] = data_out
+#print(data['train']['class'].values)
+#ao remover outliers passa a ter apenas 1 tipo de classe. Retirar????
 X_test  = data['test'].drop( 'class', axis=1 ).values
 y_test  = data['test'][ 'class' ].values
 X_train, y_train =  pp.treatUnbalancedData(data['train'], "SMOTE")
