@@ -4,17 +4,17 @@
 """
 # loading libraries
 import os
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve
 try:
     from sklearn.model_selection import train_test_split
 except ImportError as ie:
     from sklearn.cross_validation import train_test_split
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import cross_val_score
 from sklearn.naive_bayes import GaussianNB
-
-def run():
+import matplotlib.pyplot as plt
+        
+def run( file_name ):
     print( '>>> Apply Naive Bayes' )
     gnb = GaussianNB()
     model = gnb.fit( X_train, y_train )
@@ -29,6 +29,16 @@ def run():
     print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
     print( 'y_pred:', y_pred )
     #print( 'NB cross validation:', cv, sep='\n' )
+    fpr, tpr, threshold = roc_curve( y_test, y_pred )
+    plt.title( f'ROC for {file_name}')
+    plt.plot(fpr, tpr, 'b', label = 'AUC = ')
+    plt.legend(loc = 'lower right')
+    plt.plot([0, 1], [0, 1],'r--')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.show()
     print()
 
 
@@ -56,7 +66,7 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         random_state = 42,
         stratify = y
     )
-    run()
+    run( file_name )
     
     print( '--------------------------------------------' )
     print( 'Normalize data with mean value.' )
@@ -69,7 +79,7 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         random_state = 42,
         stratify = y
     )
-    run()
+    run( file_name )
     
     print( '--------------------------------------------' )
     print( 'Normalize data by dropping n/a.' )
@@ -82,7 +92,7 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         random_state = 42,
         stratify = y
     )
-    run()
+    run( file_name )
     
     
     print( '--------------------------------------------' )
@@ -96,4 +106,4 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         random_state = 42,
         stratify = y
     )
-    run()
+    run( file_name )
