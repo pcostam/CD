@@ -50,6 +50,9 @@ def treatMissingValues(df, method, cl=None):
     elif method == "interpolation": 
         #5. interpolation
         df = df.interpolate()
+    elif method == "median":
+        #6. use attribute median for that column with na
+        df = df.fillna(df.median())
     return df
 
 #Use for symbolic attributes with just 2 possible values. Doesn't create new columns. Returns de data file.
