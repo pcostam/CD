@@ -43,7 +43,8 @@ trucks_rf_model = RandomForestClassifier(n_estimators=200, class_weight='balance
 
 # compiling the model
 trucks_rf_model.fit(X_train, y_train)
-trucks_rf_model.score(X_test, y_test) #the score of the model
+# model accuracy
+print("Acuracy: ", trucks_rf_model.score(X_test, y_test), "\n")
 
 # predicting classes
 y_pred = trucks_rf_model.predict(X_test)
@@ -54,3 +55,33 @@ tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
 # visualizing the matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=False)
 plt.show()
+
+print("Cost of the model: ", fp*10 + fn *500, "\n")
+
+
+scores = trucks_rf_model.predict_proba(X_test)[:,1]
+fpr, tpr, thresholds = roc_curve(y_test, scores)
+
+min_cost = np.inf
+best_threshold = 0.5
+costs = []
+
+for threshold in thresholds:
+    y_pred_threshold = scores > threshold
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred_threshold).ravel()
+    cost = 10*fp + 500*fn
+    costs.append(cost)
+    if cost < min_cost:
+        min_cost = cost
+        best_threshold = threshold
+        
+print("Best threshold: {:.4f}".format(best_threshold))
+print("Min cost: {:.2f}".format(min_cost))
+
+
+# using the test dataset
+print("Final test acuracy: ", trucks_rf_model.score(X_test_final, y_test_final), "\n")
+
+y_pred_test_final = trucks_rf_model.predict_proba(X_test_final)[:,1] > best_threshold
+tn, fp, fn, tp = confusion_matrix(y_test_final, y_pred_test_final).ravel()
+print("Cost of final test model: ", fp*10 + fn *500, "\n")
