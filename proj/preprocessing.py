@@ -53,6 +53,12 @@ def treatMissingValues(df, method, cl=None):
     elif method == "median":
         #6. use attribute median for that column with na
         df = df.fillna(df.median())
+    elif method == "medianByClass":
+        #7. use attribute median for the rows with certain class of the column with na
+        for el in df[cl].unique():
+            for col in df.columns[df.isna().any()].tolist():
+                 df = df.fillna(df.loc[el,col].median())
+                 
     return df
 
 #Use for symbolic attributes with just 2 possible values. Doesn't create new columns. Returns de data file.
