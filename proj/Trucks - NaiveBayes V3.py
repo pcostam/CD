@@ -3,8 +3,9 @@
 
 """
 # loading libraries
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import cross_val_score
 from sklearn.naive_bayes import GaussianNB
 import matplotlib.pyplot as plt
@@ -31,23 +32,23 @@ def run():
     
     #cv = cross_val_score( naive_bayes, x_train, iris_y_train, cv=10 )
     
+    cm = confusion_matrix( y_test, y_pred )
+
+    sensitivity = cm[0][0] / ( cm[0][0] + cm[1][0] )
+    specifity = cm[1][1] / ( cm[1][1] + cm[0][1] ) 
+    
     print( 'Accuracy:', train_accuracy )
     print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
-    print( 'y_pred:', y_pred )
+    #print( 'y_pred:', y_pred )
     #print( 'NB cross validation:', cv, sep='\n' )
-    fpr, tpr, threshold = roc_curve(
-        list( map(
-            lambda x: 1 if x == 'pos' else 0,
-            y_test
-        ) ),
-        list( map(
-            lambda x: 1 if x == 'pos' else 0,
-            y_pred
-        ) ),
-        pos_label = 1
-    )
+    print( "Sensitivity:", sensitivity )
+    print( "Specificity:", specifity )
+    
+    fpr, tpr, threshold = roc_curve( y_test, y_pred )
+    roc_auc = auc(fpr, tpr)
+
     plt.title( 'ROC for Trucks' )
-    plt.plot(fpr, tpr, 'b', label = 'AUC = ')
+    plt.plot(fpr, tpr, 'b', label = f'AUC = {roc_auc}')
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
@@ -59,6 +60,15 @@ def run():
 
 
 # Normalize data:
+data['train']['class'] = np.array( [
+    1 if v == 'pos' else (0 if v == 'neg' else v)
+    for v in data['train']['class']
+] )
+data['test']['class'] = np.array( [
+    1 if v == 'pos' else (0 if v == 'neg' else v)
+    for v in data['test']['class']
+] )
+
 print( '--------------------------------------------' )
 print( 'Normalize data with a constant value of -1.' )
 data['train'] = data['train'].fillna( -1 )
