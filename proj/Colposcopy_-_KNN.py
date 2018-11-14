@@ -18,6 +18,7 @@ Created on Sun Oct 21 18:19:48 2018
 """
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import pandas as pd
+import os
 # loading libraries
 import numpy as np
 #from sklearn.cross_validation import train_test_split
@@ -25,16 +26,13 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 import preprocessing as pp
 from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
 
-def KNN():
-    print( '-----------------------------------' )
+def run():
 
-    data = pd.read_csv( r'.\data\Colposcopy\green.csv', na_values="na")
-
-    print("fim")
-    X = data.drop('consensus', axis=1 )
-    print("data", data.head())
+    X = data.drop(['consensus', 'experts::0', 'experts::1','experts::2' ,'experts::3','experts::4','experts::5'], axis=1 ).values
     y = data['consensus'].values
+
  
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42, stratify=y)
 
@@ -45,7 +43,9 @@ def KNN():
     cv_scores = []
 
     # perform 10-fold cross validation
-
+    Sp = []
+    F = []
+    Se = []
     for k in neighbors:
         knn = KNeighborsClassifier(n_neighbors=k)
         scores = cross_val_score(knn, X_train, y_train, cv=10, scoring='accuracy')
@@ -59,10 +59,34 @@ def KNN():
         print("accuracy knn", accuracy_score(y_test, y_pred))
         cm = confusion_matrix(y_test, y_pred, labels=pd.unique(y_train))
         print("confusion matrix", cm)
-        print("TPrate knn ",cm[0][0]/(cm[0][0]+cm[1][0]))
-        print("specificity knn", cm[1][1]/(cm[1][1]+cm[0][1]))
-
-
+        sensitivity = cm[0][0]/(cm[0][0]+cm[1][0])
+        print("Sensitivity(TPrate) knn ", sensitivity)
+        Se.append(sensitivity)
+        specificity = cm[1][1]/(cm[1][1]+cm[0][1])
+        print("Specificity knn", specificity)
+        Sp.append(specificity)
+        print("FPrate", 1-specificity )
+        F.append(1-specificity)
+    
+    plt.figure()
+    plt.plot(neighbors,Sp)
+    plt.ylabel('Specificity')
+    plt.xlabel('Neighbors')
+    plt.show()
+    
+    plt.figure()
+    plt.plot(neighbors, Se)
+    plt.ylabel('Sensitivity')
+    plt.xlabel('Neighbors')
+    plt.show()
+    
+    plt.figure()
+    plt.plot(neighbors, F)
+    plt.ylabel('FPrate')
+    plt.xlabel('Neighbors')
+    plt.show()
+    
+    
     knn = KNeighborsClassifier(n_neighbors=5)
     knnModel = knn.fit(X_train, y_train)
     # calculate the fpr and tpr for all thresholds of the classification
@@ -72,7 +96,7 @@ def KNN():
     roc_auc = auc(fpr, tpr)
 
     # method I: plt
-    import matplotlib.pyplot as plt
+    plt.figure()
     plt.title('Receiver Operating Characteristic')
     plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
     plt.legend(loc = 'lower right')
@@ -82,6 +106,14 @@ def KNN():
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     plt.show()
+    
+for file_name in os.listdir( r'data\Colposcopy' ):
+    data = pd.read_csv(
+        os.path.join( '.', 'data', 'Colposcopy', file_name ),
+        na_values = 'na'
+    )
+    run()
+        
 
 
 

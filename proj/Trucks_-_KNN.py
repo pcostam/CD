@@ -17,6 +17,8 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 import preprocessing as pp
 from sklearn.metrics import roc_curve, auc
+from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
 
 print( '-----------------------------------' )
 
@@ -31,21 +33,15 @@ data['train'] = pp.treatSymbolicBinaryAtts(data['train'], "class", "pos")
 data['train'] = pp.treatMissingValues(data['train'], "meanByClass", "class")
 data['test'] = pp.treatMissingValues(data['test'], "mean")
 
-#indentify outliers using IQR-score
-data_o1 = data['train']
-Q1 = data_o1.quantile(0.25)
-Q3 = data_o1.quantile(0.75)
-IQR = Q3 - Q1
-print(IQR)
-
-#remove outliers
-data_out = data_o1[~((data_o1 < (Q1 - 1.5 * IQR)) |(data_o1 > (Q3 + 1.5 * IQR))).any(axis=1)]
-#data['train'] = data_out
-#print(data['train']['class'].values)
-#ao remover outliers passa a ter apenas 1 tipo de classe. Retirar????
 X_test  = data['test'].drop( 'class', axis=1 ).values
 y_test  = data['test'][ 'class' ].values
-X_train, y_train =  pp.treatUnbalancedData(data['train'], "SMOTE")
+
+sm = SMOTE(random_state=12, ratio = 1.0)
+X_train = data['train'].drop( 'class', axis=1 ).values
+y_train = data['train'][ 'class' ].values
+X_train, y_train = sm.fit_sample(X_train, y_train)
+
+
 
 # subsetting just the odd ones
 neighbors = [1,3,5]
@@ -55,6 +51,9 @@ cv_scores = []
 
 # perform 10-fold cross validation
 
+Sp = []
+F = []
+Se = []
 for k in neighbors:
     knn = KNeighborsClassifier(n_neighbors=k)
     scores = cross_val_score(knn, X_train, y_train, cv=10, scoring='accuracy')
@@ -68,10 +67,33 @@ for k in neighbors:
     print("accuracy knn", accuracy_score(y_test, y_pred))
     cm = confusion_matrix(y_test, y_pred, labels=pd.unique(y_train))
     print("confusion matrix", cm)
-    print("TPrate knn ",cm[0][0]/(cm[0][0]+cm[1][0]))
-    print("specificity knn", cm[1][1]/(cm[1][1]+cm[0][1]))
+    sensitivity = cm[0][0]/(cm[0][0]+cm[1][0])
+    print("Sensitivity(TPrate) knn ", sensitivity)
+    Se.append(sensitivity)
+    specificity = cm[1][1]/(cm[1][1]+cm[0][1])
+    print("Specificity knn", specificity)
+    Sp.append(specificity)
+    print("FPrate", 1-specificity )
+    F.append(1-specificity)
 
-
+plt.figure()
+plt.plot(neighbors,Sp)
+plt.ylabel('Specificity')
+plt.xlabel('Neighbors')
+plt.show()
+    
+plt.figure()
+plt.plot(neighbors, Se)
+plt.ylabel('Sensitivity')
+plt.xlabel('Neighbors')
+plt.show()
+    
+plt.figure()
+plt.plot(neighbors, F)
+plt.ylabel('FPrate')
+plt.xlabel('Neighbors')
+plt.show()
+    
 knn = KNeighborsClassifier(n_neighbors=1)
 # fitting the model
 knnModel = knn.fit(X_train, y_train)
@@ -92,6 +114,7 @@ plt.ylim([0, 1])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
+
 
 
 
