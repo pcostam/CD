@@ -24,12 +24,12 @@ def main():
     
     for data in datacolposcopy:
         #preprocess colposcopy data
-        X_train, y_train =  pp.treatUnbalancedData(data, "SMOTE")
-        
+        X, y =  pp.treatUnbalancedData(data, "SMOTE")
         #find axis colposcopy data
         X = data.drop(['consensus', 'experts::0', 'experts::1','experts::2' ,'experts::3','experts::4','experts::5'], axis=1 ).values
         y = data['consensus'].values 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42, stratify=y)
+        KNN2.KNN_Colposcopy()
     
     
     

@@ -54,6 +54,7 @@ cv_scores = []
 Sp = []
 F = []
 Se = []
+Acc = []
 for k in neighbors:
     knn = KNeighborsClassifier(n_neighbors=k)
     scores = cross_val_score(knn, X_train, y_train, cv=10, scoring='accuracy')
@@ -64,6 +65,9 @@ for k in neighbors:
 
     y_pred = knnModel.predict(X_test)
     print("scores", scores.mean())
+    accuracy = accuracy_score(y_test, y_pred)
+    Acc.append(accuracy)
+    print("accuracy knn", accuracy)
     print("accuracy knn", accuracy_score(y_test, y_pred))
     cm = confusion_matrix(y_test, y_pred, labels=pd.unique(y_train))
     print("confusion matrix", cm)
@@ -75,23 +79,15 @@ for k in neighbors:
     Sp.append(specificity)
     print("FPrate", 1-specificity )
     F.append(1-specificity)
-
+    
 plt.figure()
+plt.plot(neighbors,Acc)
 plt.plot(neighbors,Sp)
-plt.ylabel('Specificity')
-plt.xlabel('Neighbors')
-plt.show()
-    
-plt.figure()
 plt.plot(neighbors, Se)
-plt.ylabel('Sensitivity')
+plt.xticks(neighbors)
+plt.ylabel('Performance')
 plt.xlabel('Neighbors')
-plt.show()
-    
-plt.figure()
-plt.plot(neighbors, F)
-plt.ylabel('FPrate')
-plt.xlabel('Neighbors')
+plt.legend(['Accuracy', 'Specificity', 'Sensitivity'], loc='best')
 plt.show()
     
 knn = KNeighborsClassifier(n_neighbors=1)
@@ -105,6 +101,7 @@ roc_auc = auc(fpr, tpr)
 
 # method I: plt
 import matplotlib.pyplot as plt
+plt.figure()
 plt.title('Receiver Operating Characteristic')
 plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
 plt.legend(loc = 'lower right')

@@ -37,7 +37,7 @@ def run():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42, stratify=y)
 
     # subsetting just the odd ones
-    neighbors = [1,3,5]
+    neighbors = [1,3,5,7,9,11,13,15,17,19]
 
     # empty list that will hold cv scores
     cv_scores = []
@@ -46,6 +46,7 @@ def run():
     Sp = []
     F = []
     Se = []
+    Acc = []
     for k in neighbors:
         knn = KNeighborsClassifier(n_neighbors=k)
         scores = cross_val_score(knn, X_train, y_train, cv=10, scoring='accuracy')
@@ -53,38 +54,33 @@ def run():
         # fitting the model
         knnModel = knn.fit(X_train, y_train)
         # predict the response
-
         y_pred = knnModel.predict(X_test)
         print("scores", scores.mean())
-        print("accuracy knn", accuracy_score(y_test, y_pred))
+        accuracy = accuracy_score(y_test, y_pred)
+        Acc.append(accuracy)
+        print("accuracy knn", accuracy)
         cm = confusion_matrix(y_test, y_pred, labels=pd.unique(y_train))
         print("confusion matrix", cm)
-        sensitivity = cm[0][0]/(cm[0][0]+cm[1][0])
+        sensitivity = (cm[0][0])/(cm[0][0]+cm[1][0])
         print("Sensitivity(TPrate) knn ", sensitivity)
         Se.append(sensitivity)
-        specificity = cm[1][1]/(cm[1][1]+cm[0][1])
+        specificity = (cm[1][1])/(cm[1][1]+cm[0][1])
         print("Specificity knn", specificity)
         Sp.append(specificity)
         print("FPrate", 1-specificity )
         F.append(1-specificity)
-    
+
     plt.figure()
+    plt.plot(neighbors,Acc)
     plt.plot(neighbors,Sp)
-    plt.ylabel('Specificity')
-    plt.xlabel('Neighbors')
-    plt.show()
-    
-    plt.figure()
     plt.plot(neighbors, Se)
-    plt.ylabel('Sensitivity')
+    plt.xticks(neighbors)
+    plt.ylabel('Performance')
     plt.xlabel('Neighbors')
+    plt.legend(['Accuracy', 'Specificity', 'Sensitivity'], loc='best')
+    
     plt.show()
     
-    plt.figure()
-    plt.plot(neighbors, F)
-    plt.ylabel('FPrate')
-    plt.xlabel('Neighbors')
-    plt.show()
     
     
     knn = KNeighborsClassifier(n_neighbors=5)
@@ -112,6 +108,7 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         os.path.join( '.', 'data', 'Colposcopy', file_name ),
         na_values = 'na'
     )
+    print(">>>>>>>>>>>>",file_name)
     run()
         
 
