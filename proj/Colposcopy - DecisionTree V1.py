@@ -42,7 +42,6 @@ def run():
     
     train_accuracy = dtc.score( X_train, y_train )
     cm = confusion_matrix( y_test, y_pred )
-    cm = confusion_matrix( y_test, y_pred )
     sensitivity = cm[0][0] / ( cm[0][0] + cm[1][0] )
     specifity = cm[1][1] / ( cm[1][1] + cm[0][1] )
     
