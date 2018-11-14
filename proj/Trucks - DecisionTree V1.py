@@ -28,11 +28,17 @@ def run():
     y_pred = model.predict( X_test )
     
     train_accuracy = dtc.score( X_train, y_train )
-    matrix, shape = confusion_matrix( y_test, y_pred )
+    cm = confusion_matrix( y_test, y_pred )
+    sensitivity = cm[0][0] / ( cm[0][0] + cm[1][0] )
+    specifity = cm[1][1] / ( cm[1][1] + cm[0][1] )
+
     print( 'Accuracy:', train_accuracy )
     print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
-    print( 'y_pred:', y_pred )
-    print( 'confusion matrix:', matrix, shape )
+    #print( 'y_pred:', y_pred )
+    print( "Sensitivity:", sensitivity )
+    print( "Specificity:", specifity )
+    
+    # ----
     
     print( '>>> Apply Decision Tree (gini)' )
     dtc = DecisionTreeClassifier( criterion = 'gini', random_state = 0 )
@@ -41,11 +47,15 @@ def run():
     y_pred = model.predict( X_test )
     
     train_accuracy = dtc.score( X_train, y_train )
-    matrix, shape = confusion_matrix( y_test, y_pred )
+    cm = confusion_matrix( y_test, y_pred )
+    sensitivity = cm[0][0] / ( cm[0][0] + cm[1][0] )
+    specifity = cm[1][1] / ( cm[1][1] + cm[0][1] )
+
     print( 'Accuracy:', train_accuracy )
     print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
-    print( 'y_pred:', y_pred )
-    print( 'confusion matrix:', matrix, shape )
+    #print( 'y_pred:', y_pred )
+    print( "Sensitivity:", sensitivity )
+    print( "Specificity:", specifity )
     print()
 
 # Normalize data:
