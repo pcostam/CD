@@ -4,7 +4,7 @@
 """
 # loading libraries
 import os
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc
 try:
     from sklearn.model_selection import train_test_split
 except ImportError as ie:
@@ -23,15 +23,26 @@ def run( file_name ):
     
     train_accuracy = gnb.score( X_train, y_train )
     
+    cm = confusion_matrix( y_test, y_pred )
+
+    sensitivity = cm[0][0] / ( cm[0][0] + cm[1][0] )
+    specifity = cm[1][1] /( cm[1][1] + cm[0][1] ) 
+    
     #cv = cross_val_score( naive_bayes, x_train, iris_y_train, cv=10 )
     
     print( 'Accuracy:', train_accuracy )
     print( 'Accuracy score:', accuracy_score( y_test, y_pred ) )
-    print( 'y_pred:', y_pred )
+    #print( 'y_pred:', y_pred )
     #print( 'NB cross validation:', cv, sep='\n' )
+    
+    print( "Sensitivity:", sensitivity )
+    print( "specificity:", specifity )
+    
     fpr, tpr, threshold = roc_curve( y_test, y_pred )
+    roc_auc = auc(fpr, tpr)
+    
     plt.title( f'ROC for {file_name}')
-    plt.plot(fpr, tpr, 'b', label = 'AUC = ')
+    plt.plot(fpr, tpr, 'b', label = f'AUC = {roc_auc}')
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
@@ -42,7 +53,7 @@ def run( file_name ):
     print()
 
 
-for file_name in os.listdir( r'data\Colposcopy' ):
+for file_name in os.listdir( os.path.join( 'data', 'Colposcopy' ) ):
     
     print( '-----------------------------------' )
     print( '-----------------------------------' )
