@@ -9,6 +9,7 @@ import numpy as np
 from IPython.display import display, HTML
 from mlxtend.frequent_patterns import apriori, association_rules
 from sklearn.preprocessing import MultiLabelBinarizer
+import matplotlib.pyplot as plt
 
 
 
@@ -28,20 +29,54 @@ for col in list(df) :
     df = pd.concat([df,df2], axis=1, join='inner')
     with pd.option_context('display.max_rows', 10, 'display.max_columns', 8): print(df)
 
-frequent_itemsets = apriori(df,min_support=0.90,use_colnames=True,max_len=2)
-print(frequent_itemsets)
-print("frequent item_sets", list(frequent_itemsets['itemsets']))
-res = list(frequent_itemsets['itemsets'])
-print(len(frequent_itemsets))
-  
-rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.99)
-display(HTML(rules.to_html()))
+S = [0.15, 0.30, 0.50, 0.75, 0.90, 0.95]
+mean_lifts = []
+nr_rules = []
+for s in S:
+    print( 'Support:', s )
+    frequent_itemsets = apriori(df,min_support=s,use_colnames=True,max_len=2)
+   
+    res = list(frequent_itemsets['support'])
+    print(min(res), max(res))
+    
+    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.99)
+    #for r in rules:
+    #    print(rules[r])
+        #print(r['antecedents'], "->", r['consequents'])
+    #print( rules['antecedents'])
+    for index, row in enumerate( rules['antecedents'] ):
+        print( row, '->', rules['consequents'][index] )
+        
+    nr_rules.append(len(nr_rules))
+    """print( 'RULES:')
+    for rule in rules:
+        #print( rules[rule] )
+        print( rule, ':', sep='' )
+        for k in rules[ rule ]:
+            print(k)"""
+    print('RULES:' , rules)
+    print(frequent_itemsets['itemsets'])
+    #3
+    lifts = [lift for lift in rules['lift']]
+    print('lift for support', s, lifts)
+    mean_lift = sum(lifts)/len(lifts)
+    mean_lifts.append(mean_lift)
+    
 
-print(rules)
-#3
-print(rules['lift'])
-print(rules['confidence'])
-print(rules['support'])
-print(rules['leverage'])
-print(rules['conviction'])
-print(len(rules))
+    
+plt.figure()
+    
+plt.plot(S, mean_lifts)
+plt.ylabel('Mean Lift')
+plt.xlabel('support')
+    
+plt.show()    
+
+plt.figure()
+plt.plot(S, nr_rules)
+plt.ylabel('Nr. rules')
+plt.xlabel('support')
+    
+plt.show()  
+    
+  
