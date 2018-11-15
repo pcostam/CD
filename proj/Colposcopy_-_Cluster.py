@@ -81,8 +81,13 @@ algorithms = {}
 #http://www.sthda.com/english/wiki/print.php?id=239
 # using sinhouete https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
 #http://ros-developer.com/2017/12/04/silhouette-coefficient-finding-optimal-number-clusters/
-range_n_clusters = range(2,5)
+range_n_clusters = range(2,19)
 silhouette_score_values = []
+all_ars = []
+all_cs = []
+MIS = []
+H = []
+VM = []
 for n_clusters in range_n_clusters:
     # Initialize the clusterer with n_clusters value
     clusterer = cluster.KMeans(n_clusters=n_clusters, n_init=200)
@@ -93,9 +98,37 @@ for n_clusters in range_n_clusters:
     silhouette_avg = silhouette_score(X, cluster_labels)
     silhouette_score_values.append(silhouette_avg)
     print("For n_clusters =", n_clusters,"The average silhouette_score is :", silhouette_avg)
+    all_ars.append(adjusted_rand_score(y, cluster_labels))
+    print("rand index score", adjusted_rand_score(y, cluster_labels))
+    #completeness
+    print("complenetess score", completeness_score(y, cluster_labels))
+    all_cs.append(completeness_score(y, cluster_labels))
+    #mutual Information based scores 
+    print("mutual information score", mutual_info_score(y, cluster_labels ))
+    MIS.append(mutual_info_score(y, cluster_labels ))
+    #homogeneity 
+    print("homogeneity", homogeneity_score(y, cluster_labels))
+    H.append(homogeneity_score(y, cluster_labels))
+    #V-measure
+    print("v-measure", v_measure_score(y, cluster_labels))
+    VM.append(v_measure_score(y, cluster_labels))
+
+plt.figure()
+plt.plot(range_n_clusters, silhouette_score_values)
+plt.plot(range_n_clusters,all_ars)
+plt.plot(range_n_clusters, all_cs)
+plt.plot(range_n_clusters, MIS)
+plt.plot(range_n_clusters, H)
+plt.plot(range_n_clusters, VM)
+plt.xticks(range_n_clusters)
+plt.ylabel('Performance')
+plt.xlabel('N-Clusters')
+plt.legend(['Silhouette', 'Rand Index Score', 'Completeness Score','Mutual information score' ,'Homogeneity' , 'V-measure'], loc='best')
+plt.show()
     
     
-k_clusters = range_n_clusters[silhouette_score_values.index(max(silhouette_score_values))]
+#k_clusters = range_n_clusters[silhouette_score_values.index(max(silhouette_score_values))]
+k_clusters = 8
 print("k_clusters", k_clusters)
 
 """
@@ -164,10 +197,10 @@ for name, algorithm in agglomerative_algorithms:
     
    print("sum of squared errors", s)
    
-   plt.figure()
-   plt.title('Hierarchical Clustering Dendrogram')
-   plot_dendrogram(algorithm, labels=algorithm.labels_)
-   plt.show()
+   #plt.figure()
+   #plt.title('Hierarchical Clustering Dendrogram')
+   #plot_dendrogram(algorithm, labels=algorithm.labels_)
+   #plt.show()
    
 
     
@@ -229,6 +262,49 @@ plt.xlabel('Points sample sorted by distance')
 plt.plot(points, distances)
 plt.show()
 
+eps_range = range(2,18)
+ms_range = range(2,18)
+
+_labels = []
+silhouette_score_values = []
+all_ars = []
+all_cs = []
+MIS = []
+H = []
+VM = []
+for e in eps_range :
+    print("DBSCAN", e)
+    dbscan = cluster.DBSCAN(eps=e)
+    _labels = dbscan.fit_predict(X)
+ 
+    #silhouette_score(X, _labels)
+    all_ars.append(adjusted_rand_score(y, _labels))
+
+    all_cs.append(completeness_score(y, _labels))
+
+    MIS.append(mutual_info_score(y, _labels ))
+
+    H.append(homogeneity_score(y,_labels))
+
+    VM.append(v_measure_score(y,_labels))
+    """
+    Inertia is only a sensible measure for spherical clusters. I.e. not for DBSCAN. 
+    Similar reasonings apply for most internal measures: most are designed around centroid-based cluster models
+    , not arbitrarily shaped clusters.
+    """
+    
+ 
+plt.figure()
+plt.plot(eps_range,all_ars)
+plt.plot(eps_range, all_cs)
+plt.plot(eps_range, MIS)
+plt.plot(eps_range, H)
+plt.plot(eps_range, VM)
+plt.xticks(eps_range)
+plt.ylabel('Performance')
+plt.xlabel('Eps')
+plt.legend(['Rand Index Score', 'Completeness Score','Mutual information score' ,'Homogeneity' , 'V-measure'], loc='best')
+plt.show()
 
 dbscan = cluster.DBSCAN(eps=6)
 
@@ -240,6 +316,7 @@ birch = cluster.Birch(n_clusters=k_clusters)
 """
 
 gmm = mixture.GaussianMixture(n_components=k_clusters, covariance_type='full')
+
 
 #large datasets require smalls quantiles
 
@@ -277,20 +354,64 @@ algorithms =  algorithms + (
 
 
 
-     
+xticklabels = []
+all_ars = []
+all_cs = []
+MIS = []
+H = []
+VM = []
 for name, algorithm in algorithms:    
+    xticklabels.append(name)
     print(">>>>name", name)
     #adjusted Rand index
     y_labels = algorithm.fit_predict(X)
+    all_ars.append(adjusted_rand_score(y, y_labels))
     print("rand index score", adjusted_rand_score(y, y_labels))
     #completeness
     print("complenetess score", completeness_score(y, y_labels))
+    all_cs.append(completeness_score(y, y_labels))
     #mutual Information based scores 
     print("mutual information score", mutual_info_score(y, y_labels ))
+    MIS.append(mutual_info_score(y, y_labels ))
     #homogeneity 
     print("homogeneity", homogeneity_score(y, y_labels))
+    H.append(homogeneity_score(y, y_labels))
     #V-measure
     print("v-measure", v_measure_score(y, y_labels))
+    VM.append(v_measure_score(y, y_labels))
     #sum of squared errors TODO
+    
+
+fig,ax = plt.subplots()
+x = range(0,len(algorithms))
+plt.bar(x, all_cs)
+plt.xticks(x, xticklabels)
+ax.set_ylabel('Completeness score')
+plt.show()
+
+fig,ax = plt.subplots()
+x = range(0,len(algorithms))
+plt.bar(x, MIS)
+plt.xticks(x, xticklabels)
+ax.set_ylabel('Mutual information score')
+plt.show()
+   
+
+
+fig,ax = plt.subplots()
+x = range(0,len(algorithms))
+plt.bar(x, H)
+plt.xticks(x, xticklabels)
+ax.set_ylabel('Homogeneity score')
+plt.show()
+   
+    
+
+fig,ax = plt.subplots()
+x = range(0,len(algorithms))
+plt.bar(x, VM)
+plt.xticks(x, xticklabels)
+ax.set_ylabel('V-measure score')
+plt.show()
   
  
