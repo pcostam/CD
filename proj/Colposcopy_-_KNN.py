@@ -108,7 +108,15 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         os.path.join( '.', 'data', 'Colposcopy', file_name ),
         na_values = 'na'
     )
+    
+    data_o1 = data
+    Q1 = data_o1.quantile(0.25)
+    Q3 = data_o1.quantile(0.75)
+    IQR = Q3 - Q1
+    print(IQR)
     print(">>>>>>>>>>>>",file_name)
+    data_out = data_o1[~((data_o1 < (Q1 - 1.5 * IQR)) |(data_o1 > (Q3 + 1.5 * IQR))).any(axis=1)]
+    data = data_out
     run()
         
 
