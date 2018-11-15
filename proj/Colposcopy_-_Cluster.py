@@ -184,7 +184,22 @@ spectral = cluster.SpectralClustering(n_clusters=k_clusters, eigen_solver='arpac
 
 """Affinity Propagation
 """
-affinity = cluster.AffinityPropagation(damping=0.6, preference=-200)
+silhouette_score_values = []
+print(silhouette_score_values)
+damping_values = [0.5,0.6,0.7,0.8,0.9]
+for value in damping_values:
+    print(value)
+    affinity = cluster.AffinityPropagation(damping=value)
+    labels = affinity.fit_predict(X)
+    silhouette_avg = silhouette_score(X, labels)
+    silhouette_score_values.append(silhouette_avg)
+    
+print("max silhouette score", max(silhouette_score_values))
+
+best_damping = damping_values[silhouette_score_values.index(max(silhouette_score_values))]
+print("max_affinity", best_damping)
+
+affinity = cluster.AffinityPropagation(damping=best_damping,preference=-200)
 
 
 """
@@ -226,6 +241,7 @@ birch = cluster.Birch(n_clusters=k_clusters)
 
 gmm = mixture.GaussianMixture(n_components=k_clusters, covariance_type='full')
 
+#large datasets require smalls quantiles
 
 bandwidth = cluster.estimate_bandwidth(X, quantile=0.2)
 ms = cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True)
