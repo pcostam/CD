@@ -25,10 +25,7 @@ train_data = treatSymbolicBinaryAtts(train_data, "class", "pos")
 test_data = treatSymbolicBinaryAtts(test_data, "class", "pos")
 
 train_data = treatMissingValues(train_data, "meanByClass", cl="class")
-train_median_data = treatMissingValues(train_data, "mean", cl="class")
-test_data = treatMissingValues(test_data, "median", cl=None)
-
-#TO DO balance data
+test_data = treatMissingValues(test_data, "mean", cl=None)
 
 #no normalization needed in random forests
 
@@ -43,30 +40,56 @@ SEED = 1
 # separating data into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=SEED)
 
-# applying random forest
+#test random forest for diferent number of estimators
+estimators = [100, 200, 500, 1000]
+accs = []
+train_costs = []
+
+for est in estimators:
+
+    # applying random forest
+    trucks_rf_model = RandomForestClassifier(n_estimators=est, class_weight='balanced', random_state=SEED, n_jobs=-1)
+    
+    # train the classifier
+    trucks_rf_model.fit(X_train, y_train)
+    
+    train_acc = trucks_rf_model.score(X_test, y_test)
+    
+    # model accuracy
+    print("Accuracy for ", est, " estimators: ", train_acc, "\n")
+    
+    accs.append(train_acc)
+
+    # predicting classes
+    y_pred = trucks_rf_model.predict(X_test)
+    
+    # model balanced acccuracy
+    print("Balanced accuracy: ", balanced_accuracy_score(y_pred, y_test), "\n")
+    
+    # confusion matrix
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    
+    train_cost = fp*10 + fn *500
+
+    print("Cost of the model for ", est, " estimators: ", train_cost, "\n")
+    
+    train_costs.append(train_cost)
+    
+plt.title( 'Trucks cost fuction according to different estimators' )
+plt.plot(estimators, train_costs, 'b')
+plt.xlim([0, 1000])
+plt.ylabel('Cost of prediction model')
+plt.xlabel('Nr. Estimators')
+plt.show()
+print()
+
+#train the model for the best number of estimators
 trucks_rf_model = RandomForestClassifier(n_estimators=200, class_weight='balanced', random_state=SEED, n_jobs=-1)
-
-# train the classifier
 trucks_rf_model.fit(X_train, y_train)
-
-# model accuracy
-print("Accuracy: ", trucks_rf_model.score(X_test, y_test), "\n")
-
-# predicting classes
-y_pred = trucks_rf_model.predict(X_test)
-
-# model balanced acccuracy
-print("Balanced accuracy: ", balanced_accuracy_score(y_pred, y_test), "\n")
-
-# confusion matrix
-tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
 
 # visualizing the matrix
 skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=False)
 plt.show()
-
-print("Cost of the model: ", fp*10 + fn *500, "\n")
-
 
 scores = trucks_rf_model.predict_proba(X_test)[:,1]
 fpr, tpr, thresholds = roc_curve(y_test, scores)
