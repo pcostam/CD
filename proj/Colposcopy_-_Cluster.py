@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_score, silhouette_samples, adjusted_rand_score, mean_squared_error, completeness_score, mutual_info_score, homogeneity_score, v_measure_score
 from sklearn.neighbors import NearestNeighbors
 from scipy.cluster.hierarchy import dendrogram
+from imblearn.over_sampling import SMOTE
 import numpy as np
 import os
 from sklearn.feature_selection import chi2
@@ -41,20 +42,10 @@ print( '-----------------------------------' )
 def run():
     data = pd.read_csv( r'.\data\Colposcopy\green.csv', na_values="na")
     
-    #indentify outliers using IQR-score
-    data_o1 = data
-    Q1 = data_o1.quantile(0.25)
-    Q3 = data_o1.quantile(0.75)
-    IQR = Q3 - Q1
-    print(IQR)
-    
-    #remove outliers
-    data_out = data_o1[~((data_o1 < (Q1 - 1.5 * IQR)) |(data_o1 > (Q3 + 1.5 * IQR))).any(axis=1)]
-    data = data_out
     
     X = data.drop(['consensus', 'experts::0', 'experts::1','experts::2' ,'experts::3','experts::4','experts::5'], axis=1 ).values
     y = data['consensus'].values
-    
+
     #center and scale data
     X = StandardScaler().fit_transform(X)
     
@@ -129,7 +120,7 @@ def run():
         
         
     #k_clusters = range_n_clusters[silhouette_score_values.index(max(silhouette_score_values))]
-    k_clusters = 8
+    k_clusters = 2
     print("k_clusters", k_clusters)
     
     """
@@ -170,8 +161,6 @@ def run():
                                 ('single', single)
                                )
     
-    #chisquare(X_train, y_train)
-    #chisquare(X_test, y_test)
         
     for name, algorithm in agglomerative_algorithms:
        print(name)
@@ -203,10 +192,7 @@ def run():
        #plot_dendrogram(algorithm, labels=algorithm.labels_)
        #plt.show()
        
-    
-        
-    
-    
+
     
     """
     
@@ -258,7 +244,7 @@ def run():
     best_damping = damping_values[silhouette_score_values.index(max(silhouette_score_values))]
     print("max_affinity", best_damping)
     
-    affinity = cluster.AffinityPropagation(damping=best_damping,preference=-200)
+    affinity = cluster.AffinityPropagation(damping=0.7,preference=-200)
     
     
     """
@@ -334,7 +320,7 @@ def run():
     plt.legend(['Rand Index Score', 'Completeness Score','Mutual information score' ,'Homogeneity' , 'V-measure'], loc='best')
     plt.show()
     
-    dbscan = cluster.DBSCAN(eps=8)
+    dbscan = cluster.DBSCAN(eps=7)
     
     birch = cluster.Birch(n_clusters=k_clusters)
     
@@ -414,6 +400,14 @@ def run():
     
     fig,ax = plt.subplots()
     x = range(0,len(algorithms))
+    plt.bar(x, all_ars)
+    plt.xticks(x, xticklabels)
+    plt.title('file_name ' + file_name)
+    ax.set_ylabel('Adjusted Rand Index Score')
+    plt.show()
+    
+    fig,ax = plt.subplots()
+    x = range(0,len(algorithms))
     plt.bar(x, MIS)
     plt.xticks(x, xticklabels)
     plt.title('file_name ' + file_name)
@@ -449,12 +443,5 @@ for file_name in os.listdir( r'data\Colposcopy' ):
         na_values = 'na'
     )
     
-    data_o1 = data
-    Q1 = data_o1.quantile(0.25)
-    Q3 = data_o1.quantile(0.75)
-    IQR = Q3 - Q1
-    print(IQR)
-    print(">>>>>>>>>>>>",file_name)
-    data_out = data_o1[~((data_o1 < (Q1 - 1.5 * IQR)) |(data_o1 > (Q3 + 1.5 * IQR))).any(axis=1)]
-    data = data_out
+   
     run()
