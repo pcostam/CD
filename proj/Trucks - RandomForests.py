@@ -64,7 +64,7 @@ for est in estimators:
     y_pred = trucks_rf_model.predict(X_test)
     
     # model balanced acccuracy
-    print("Balanced accuracy: ", balanced_accuracy_score(y_pred, y_test), "\n")
+    print("Balanced accuracy: ", balanced_accuracy_score(y_test, y_pred), "\n")
     
     # confusion matrix
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
