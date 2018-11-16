@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, make_scorer
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, make_scorer, balanced_accuracy_score, auc
 import scikitplot as skplt
 from preprocessing import treatSymbolicBinaryAtts, treatMissingValues
 #pd.options.display.max_columns = None
@@ -24,8 +24,13 @@ print(train_data['class'].value_counts())
 train_data = treatSymbolicBinaryAtts(train_data, "class", "pos")
 test_data = treatSymbolicBinaryAtts(test_data, "class", "pos")
 
-train_data = treatMissingValues(train_data, "median", cl=None)
+train_data = treatMissingValues(train_data, "meanByClass", cl="class")
+train_median_data = treatMissingValues(train_data, "mean", cl="class")
 test_data = treatMissingValues(test_data, "median", cl=None)
+
+#TO DO balance data
+
+#no normalization needed in random forests
 
 X = train_data.drop('class', axis=1) 
 y = train_data['class']
@@ -41,13 +46,17 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratif
 # applying random forest
 trucks_rf_model = RandomForestClassifier(n_estimators=200, class_weight='balanced', random_state=SEED, n_jobs=-1)
 
-# compiling the model
+# train the classifier
 trucks_rf_model.fit(X_train, y_train)
+
 # model accuracy
-print("Acuracy: ", trucks_rf_model.score(X_test, y_test), "\n")
+print("Accuracy: ", trucks_rf_model.score(X_test, y_test), "\n")
 
 # predicting classes
 y_pred = trucks_rf_model.predict(X_test)
+
+# model balanced acccuracy
+print("Balanced accuracy: ", balanced_accuracy_score(y_pred, y_test), "\n")
 
 # confusion matrix
 tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
@@ -61,6 +70,18 @@ print("Cost of the model: ", fp*10 + fn *500, "\n")
 
 scores = trucks_rf_model.predict_proba(X_test)[:,1]
 fpr, tpr, thresholds = roc_curve(y_test, scores)
+roc_auc = auc(fpr, tpr)
+
+plt.title( 'ROC for Random Forests applied to Trucks' )
+plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
+print()
 
 min_cost = np.inf
 best_threshold = 0.5
@@ -80,8 +101,11 @@ print("Min cost: {:.2f}".format(min_cost))
 
 
 # using the test dataset
-print("Final test acuracy: ", trucks_rf_model.score(X_test_final, y_test_final), "\n")
+print("Final test accuracy: ", trucks_rf_model.score(X_test_final, y_test_final), "\n")
 
 y_pred_test_final = trucks_rf_model.predict_proba(X_test_final)[:,1] > best_threshold
+
+print("Final test balanced accuracy: ", balanced_accuracy_score(y_pred_test_final, y_test_final), "\n")
+
 tn, fp, fn, tp = confusion_matrix(y_test_final, y_pred_test_final).ravel()
 print("Cost of final test model: ", fp*10 + fn *500, "\n")

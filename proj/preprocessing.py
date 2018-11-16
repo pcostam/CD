@@ -26,7 +26,7 @@ def plot_2d_space(X, y, label='Classes'):
     plt.legend(loc='upper right')
     plt.show()
 
-#Returns the data file. The class cls is obligatory for the method meanByClass	
+#Returns the data file. The class cls is obligatory for the method meanByClass and medianByClass
 def treatMissingValues(df, method, cl=None):
     if method == "constant":
         #1. use a global constant to fill in for missing values
