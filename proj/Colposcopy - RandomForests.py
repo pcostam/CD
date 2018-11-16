@@ -1,4 +1,5 @@
 # import libraries
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -31,8 +32,8 @@ print(schiller_data['consensus'].value_counts())
 
 def run(data, file_name):
 
-    X = data.drop('consensus', axis=1)
-    #X_no_experts = green_data.drop(['experts::0', 'experts::1', 'experts::2', 'experts::3', 'experts::4', 'experts::5', 'consensus'], axis=1)
+    #X = data.drop('consensus', axis=1)
+    X_no_experts = data.drop(['experts::0', 'experts::1', 'experts::2', 'experts::3', 'experts::4', 'experts::5', 'consensus'], axis=1)
     y = data['consensus']
     
     expert0 = data['experts::0'] 
@@ -47,7 +48,7 @@ def run(data, file_name):
     SEED = 1
     
     # separating data into train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=SEED)
+    X_train, X_test, y_train, y_test = train_test_split(X_no_experts, y, test_size=0.3, stratify=y, random_state=SEED)
     
     
     #test random forest for diferent number of estimators
@@ -80,20 +81,45 @@ def run(data, file_name):
     col_rf_model.fit(X_train, y_train)
     y_pred = col_rf_model.predict(X_test)
     
+    exp_costs = []
+    exp_accs = []
+    
     i = 0
     for exp in experts:
         #we assume consensus at the better target thruth
         tn, fp, fn, tp = confusion_matrix(y, exp).ravel()
         print("scores for expert ", i, " :", tn, fp, fn, tp)
         
+        exp_cost = fp*1 + fn *1
         #we create simplified costs (false predict = 1) to better evaluate experts predictions
-        print("Cost of expert ", i, ": ", fp*1 + fn *1)
+        print("Cost of expert ", i, ": ", exp_cost)
+        exp_costs.append(exp_cost)
         
         #we use expert predictiions as predictions against the final consensus
-        acc_score = accuracy_score(y, exp)
-        print("scores for expert ", i, " :", acc_score, "\n")
-        
+        exp_acc = accuracy_score(y, exp)
+        print("scores for expert ", i, " :", exp_acc, "\n")
+        exp_accs.append(exp_acc)
         i += 1
+    
+    print("Mean of experts costs: ", np.mean(exp_costs))
+    print("Mean of experts accuracies: ", np.mean(exp_accs))
+    
+    fig, ax1 = plt.subplots()
+    exps = np.arange(0, 6)
+    ax1.plot(exps, exp_costs, 'b-')
+    ax1.set_xlabel('Experts')
+    # Make the y-axis label, ticks and tick labels match the line color.
+    ax1.set_ylabel('Cost', color='b')
+    ax1.tick_params('y', colors='b')
+    
+    ax2 = ax1.twinx()
+    ax2.plot(exps, exp_accs, 'r-')
+    ax2.set_ylabel('Accuracy', color='r')
+    ax2.tick_params('y', colors='r')
+    
+    fig.tight_layout()
+    plt.title( 'Experts predictions on '+ file_name + ' colposcopy' )
+    plt.show()
     
     # confusion matrix
     #tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
